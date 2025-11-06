@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "database.h" //actual code logic
+#include "database.h" // actual code logic
 
 Student records[MAX_RECORDS];
 int recordCount = 0;
@@ -49,10 +49,20 @@ void updateRecord(int id) {
 void insertRecord() {
     Student newStudent;
 
-    printf("\nEnter new student ID: ");
-    scanf("%d", &newStudent.id);
+    printf("\nEnter new student ID (7 digits): ");
+    if (scanf("%d", &newStudent.id) != 1 || newStudent.id <= 0) {
+        printf("Invalid ID. Please enter a positive number.\n");
+        while (getchar() != '\n'); // clear bad input
+        return;
+    }
 
-    // Check for duplicates
+    // --- 7-digit length check ---
+    if (newStudent.id < 1000000 || newStudent.id > 9999999) {
+        printf("Invalid ID length. Student ID must be exactly 7 digits.\n");
+        return;
+    }
+
+    // --- Duplicate ID check ---
     for (int i = 0; i < recordCount; i++) {
         if (records[i].id == newStudent.id) {
             printf("Error: A record with ID %d already exists.\n", newStudent.id);
@@ -60,6 +70,7 @@ void insertRecord() {
         }
     }
 
+    // --- Continue with other fields ---
     printf("Enter name: ");
     scanf("%s", newStudent.name);
     printf("Enter programme: ");
@@ -72,3 +83,5 @@ void insertRecord() {
 
     printf("\nRecord inserted successfully!\n");
 }
+
+
