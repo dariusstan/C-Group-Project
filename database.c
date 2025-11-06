@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "database.h"
+#include "database.h" //actual code logic
 
 Student records[MAX_RECORDS];
 int recordCount = 0;
