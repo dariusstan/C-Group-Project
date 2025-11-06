@@ -1,5 +1,5 @@
-#ifndef DATABASE_H
-#define DATABASE_H
+#ifndef DATABASE_H 
+#define DATABASE_H //this is the header file and its used to declare functions so we can share them between multiple .c files
 
 #define MAX_RECORDS 100
 #define MAX_STR_LEN 50
