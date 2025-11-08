@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include <string.h>
-#include "./database.h" // actual code logic
+#include "database.h" // actual code logic
 
 Student records[MAX_RECORDS];
 int recordCount = 0;
 
 // --- TEMP DATA for testing (you can later replace this with file input) ---
-void loadSampleData() {
+void loadSampleData(void) {
     recordCount = 3;
-    records[0] = (Student){2301234, "Joshua", "SoftwareEngineering", 70.5};
-    records[1] = (Student){2201234, "Isaac", "ComputerScience", 63.4};
-    records[2] = (Student){2304567, "John", "DigitalSupplyChain", 85.9};
+    records[0] = (Student){2301234, "Joshua", "SoftwareEngineering", 70.5f};
+    records[1] = (Student){2201234, "Isaac", "ComputerScience", 63.4f};
+    records[2] = (Student){2304567, "John", "DigitalSupplyChain", 85.9f};
 }
 
 // --- QUERY FEATURE ---
@@ -36,9 +36,9 @@ void updateRecord(int id) {
     if (index == -1) return;
 
     printf("\nEnter new name: ");
-    scanf("%s", records[index].name);
+    scanf("%49s", records[index].name);        // width limit to avoid overflow
     printf("Enter new programme: ");
-    scanf("%s", records[index].programme);
+    scanf("%49s", records[index].programme);   // width limit
     printf("Enter new mark: ");
     scanf("%f", &records[index].mark);
 
@@ -46,7 +46,12 @@ void updateRecord(int id) {
 }
 
 // --- INSERT FEATURE ---
-void insertRecord() {
+void insertRecord(void) {
+    if (recordCount >= MAX_RECORDS) {
+        printf("Cannot insert: database is full.\n");
+        return;
+    }
+
     Student newStudent;
 
     printf("\nEnter new student ID (7 digits): ");
@@ -72,16 +77,23 @@ void insertRecord() {
 
     // --- Continue with other fields ---
     printf("Enter name: ");
-    scanf("%s", newStudent.name);
+    scanf("%49s", newStudent.name);            // width limit
     printf("Enter programme: ");
-    scanf("%s", newStudent.programme);
+    scanf("%49s", newStudent.programme);       // width limit
     printf("Enter mark: ");
     scanf("%f", &newStudent.mark);
 
-    records[recordCount] = newStudent;
-    recordCount++;
+    records[recordCount++] = newStudent;
 
     printf("\nRecord inserted successfully!\n");
 }
 
+// ===== Read-only accessors for SHOW ALL ===== 
 
+size_t db_count(void) {
+    return (size_t)recordCount;
+}
+
+const Student* db_get(size_t idx) {
+    return idx < (size_t)recordCount ? &records[idx] : NULL;
+}

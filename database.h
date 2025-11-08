@@ -1,5 +1,7 @@
-#ifndef DATABASE_H 
-#define DATABASE_H //this is the header file and its used to declare functions so we can share them between multiple .c files
+#ifndef DATABASE_H
+#define DATABASE_H  // header used to declare shared types and functions
+
+#include <stddef.h>
 
 #define MAX_RECORDS 100
 #define MAX_STR_LEN 50
@@ -11,12 +13,18 @@ typedef struct {
     float mark;
 } Student;
 
+// Internal storage owned by database.c
 extern Student records[MAX_RECORDS];
 extern int recordCount;
 
-void loadSampleData();
+// Existing operations
+void loadSampleData(void);
 int queryRecord(int id);
 void updateRecord(int id);
-void insertRecord();
+void insertRecord(void);
+
+// Read-only accessors for iteration (preferred public API)
+size_t db_count(void);
+const Student* db_get(size_t idx);
 
 #endif

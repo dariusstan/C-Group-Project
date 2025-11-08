@@ -1,49 +1,82 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include "database.h"  // entry point, connects to functions in database.c
 
-int main() {
-    char command[20];
+// Helper: read a whole line safely
+static int read_line(char *buf, size_t n){
+    if (!fgets(buf, (int)n, stdin)) return 0;
+    size_t len = strlen(buf);
+    if (len && (buf[len-1] == '\n' || buf[len-1] == '\r')) buf[--len] = 0;
+    return 1;
+}
+
+// Helper: uppercase copy for command matching
+static void upper_inplace(char *s){
+    for (; *s; ++s) *s = (char)toupper((unsigned char)*s);
+}
+
+int main(void) {
+    char command[64];
     int id;
 
-    loadSampleData(); // Temporary data for testing
+    // Temporary data for testing
+    loadSampleData();
 
     while (1) {
-        printf("\nEnter command (QUERY, UPDATE, INSERT, EXIT): ");
-        scanf(" %[^\n]", command);
+        printf("\nEnter command (SHOW ALL, QUERY, UPDATE, INSERT, EXIT): ");
+        if (!read_line(command, sizeof command)) break;
 
-        // Convert to uppercase-insensitive match if you want
-        if (strcmp(command, "QUERY") == 0) {
+        // Normalize command for matching
+        char match[64];
+        strncpy(match, command, sizeof match - 1);
+        match[sizeof match - 1] = 0;
+        upper_inplace(match);
+
+        if (strcmp(match, "SHOW ALL") == 0) {
+            // Display all records in student records
+            // Uses database accessors so formatting stays here
+            size_t n = db_count();
+            if (n == 0) {
+                puts("No records to display. Open or insert records first.");
+                continue;
+            }
+            puts("Here are all the records found in the table StudentRecords.");
+            puts("ID           Name                 Programme               Mark");
+            for (size_t i = 0; i < n; ++i) {
+                const Student *s = db_get(i);
+                printf("%-11d %-20s %-22s %.1f\n", s->id, s->name, s->programme, s->mark);
+            }
+        } else if (strcmp(match, "QUERY") == 0) {
 
             printf("Enter student ID: ");
-            if (scanf("%d", &id) != 1 || id <= 0) {
-                printf("Invalid ID. Please enter a positive number.\n"); //put validation here instead of database.c because it handles user input here 
-                while (getchar() != '\n'); // clear invalid input
-                continue; // skip back to menu
+            if (!read_line(command, sizeof command)) break;
+            if (sscanf(command, "%d", &id) != 1 || id <= 0) {
+                printf("Invalid ID. Please enter a positive number.\n");
+                continue;
             }
             queryRecord(id);
-        } 
-        else if (strcmp(command, "UPDATE") == 0) {
+
+        } else if (strcmp(match, "UPDATE") == 0) {
 
             printf("Enter student ID: ");
-            if (scanf("%d", &id) != 1 || id <= 0) {
-                printf("Invalid ID. Please enter a positive number.\n"); //put validation here instead of database.c because it handles user input here 
-                while (getchar() != '\n');
+            if (!read_line(command, sizeof command)) break;
+            if (sscanf(command, "%d", &id) != 1 || id <= 0) {
+                printf("Invalid ID. Please enter a positive number.\n");
                 continue;
             }
             updateRecord(id);
-        } 
-        else if (strcmp(command, "INSERT") == 0) {
+
+        } else if (strcmp(match, "INSERT") == 0) {
             insertRecord();
-        } 
-        else if (strcmp(command, "EXIT") == 0) {
+
+        } else if (strcmp(match, "EXIT") == 0) {
             printf("\nExiting program... Goodbye!\n");
             break;
-        } 
-        else {
+
+        } else {
             printf("Invalid command. Try again.\n");
         }
     }
     return 0;
 }
-
