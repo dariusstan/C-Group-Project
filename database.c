@@ -56,14 +56,14 @@ void insertRecord(void) {
 
     printf("\nEnter new student ID (7 digits): ");
     if (scanf("%d", &newStudent.id) != 1 || newStudent.id <= 0) {
-        printf("Invalid ID. Please enter a positive number.\n");
+        printf("Invalid ID. Please enter a numeric and positive number.\n");
         while (getchar() != '\n'); // clear bad input
         return;
     }
 
     // --- 7-digit length check ---
     if (newStudent.id < 1000000 || newStudent.id > 9999999) {
-        printf("Invalid ID length. Student ID must be exactly 7 digits.\n");
+        printf("Invalid ID length. Student ID must be exactly 7 digits and cannot start with 0\n");
         return;
     }
 
