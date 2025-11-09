@@ -19,12 +19,10 @@ static void upper_inplace(char *s){
 int main(void) {
     char command[64];
     int id;
-
-    // Temporary data for testing
-    loadSampleData();
+    char line[512], match[32], arg[480]; 
 
     while (1) {
-        printf("\nEnter command (SHOW ALL, QUERY, UPDATE, INSERT, EXIT): ");
+        printf("\nEnter command (OPEN, SHOW ALL, QUERY, UPDATE, INSERT, DELETE, EXIT): ");
         if (!read_line(command, sizeof command)) break;
 
         // Normalize command for matching
@@ -33,7 +31,18 @@ int main(void) {
         match[sizeof match - 1] = 0;
         upper_inplace(match);
 
-        if (strcmp(match, "SHOW ALL") == 0) {
+        if (strcmp(match, "OPEN") == 0) {
+            char path[512];
+            printf("Enter database file path: ");
+            //calls helper to read line, if fails, cancels OPEN operation
+            if (!read_line(path, sizeof path)) { puts("Open cancelled."); continue; }
+            if (openDatabase(path) != 0) {
+                perror("OPEN failed");
+            } else {
+                printf("Database opened with %d records.\n", recordCount);
+            }
+
+        } else if (strcmp(match, "SHOW ALL") == 0) {
             // Display all records in student records
             // Uses database accessors so formatting stays here
             size_t n = db_count();
@@ -69,6 +78,22 @@ int main(void) {
 
         } else if (strcmp(match, "INSERT") == 0) {
             insertRecord();
+
+        } else if (strcmp(match, "SAVE") == 0) {
+            printf("Saving records...\n");
+
+        } else if (strcmp(match, "DELETE") == 0) {
+            int id;
+            // Try to parse an ID following the DELETE command 
+            if (sscanf(arg, "%*s %d", &id) != 1) {
+                char buf[64];
+                printf("Enter student ID to delete: ");
+                if (!fgets(buf, sizeof buf, stdin) || sscanf(buf, "%d", &id) != 1) {
+                    puts("Delete cancelled.");
+                    continue;
+                }
+            }
+            deleteRecord(id);
 
         } else if (strcmp(match, "EXIT") == 0) {
             printf("\nExiting program... Goodbye!\n");

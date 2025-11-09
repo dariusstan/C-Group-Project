@@ -22,6 +22,8 @@ void loadSampleData(void);
 int queryRecord(int id);
 void updateRecord(int id);
 void insertRecord(void);
+int openDatabase(const char *path);
+int deleteRecord(int id);
 
 // Read-only accessors for iteration (preferred public API)
 size_t db_count(void);

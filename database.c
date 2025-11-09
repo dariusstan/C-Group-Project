@@ -1,16 +1,48 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>  //helpers, mainly for isdigit()
 #include "database.h" // actual code logic
 
 Student records[MAX_RECORDS];
 int recordCount = 0;
 
-// --- TEMP DATA for testing (you can later replace this with file input) ---
-void loadSampleData(void) {
-    recordCount = 3;
-    records[0] = (Student){2301234, "Joshua", "SoftwareEngineering", 70.5f};
-    records[1] = (Student){2201234, "Isaac", "ComputerScience", 63.4f};
-    records[2] = (Student){2304567, "John", "DigitalSupplyChain", 85.9f};
+// // --- TEMP DATA for testing (you can later replace this with file input) ---
+// void loadSampleData(void) {
+//     recordCount = 3;
+//     records[0] = (Student){2301234, "Joshua", "SoftwareEngineering", 70.5f};
+//     records[1] = (Student){2201234, "Isaac", "ComputerScience", 63.4f};
+//     records[2] = (Student){2304567, "John", "DigitalSupplyChain", 85.9f};
+// }
+
+// --- OPEN FEATURE ---
+int openDatabase(const char *path) {
+    FILE *fp = fopen(path, "r");
+    //If cant open file, print error and return -1 to indicate failure
+    if (!fp) { perror("OPEN"); return -1; }
+
+    char line[512];
+    //Loop to find the first header ID 
+    while (fgets(line, sizeof line, fp)) {
+        // set p to start of line, skip spaces/tabs
+        const char *p=line; while(*p==' '||*p=='\t') ++p;
+        if (strncmp(p,"ID",2)==0) break;
+    }
+
+    recordCount = 0;
+    //reads lines until end of file or max capacity reached
+    while (recordCount < MAX_RECORDS && fgets(line, sizeof line, fp)) {
+        const char *p=line; while(*p==' '||*p=='\t') ++p;
+        //Ensures first character is a digit before parsing
+        if (!isdigit((unsigned char)*p)) continue;
+        Student s;
+        //formats each row, and only adds to records if all 4 fields successfully parsed
+        if (sscanf(line, "%d\t%49[^\t]\t%49[^\t]\t%f",
+                   &s.id, s.name, s.programme, &s.mark) == 4) {
+            records[recordCount++] = s;
+        }
+    }
+    fclose(fp);
+    return 0;
 }
 
 // --- QUERY FEATURE ---
@@ -86,6 +118,33 @@ void insertRecord(void) {
     records[recordCount++] = newStudent;
 
     printf("\nRecord inserted successfully!\n");
+}
+
+// --- DELETE FEATURE ---
+int deleteRecord(int id) {
+    int i = 0;
+    for (; i < recordCount && records[i].id != id; ++i) {}
+    if (i == recordCount) {                      // not found
+        printf("No record found with ID %d.\n", id);
+        return -1;
+    }
+
+    printf("Found: ID=%d, Name=%s, Programme=%s, Mark=%.2f\n",
+           records[i].id, records[i].name, records[i].programme, records[i].mark);
+
+    printf("Confirm delete? (Y/N): ");
+    char a[8];
+    if (!fgets(a, sizeof a, stdin) || (a[0] != 'Y' && a[0] != 'y')) {
+        puts("Deletion cancelled.");
+        return 1;
+    }
+
+    for (int j = i + 1; j < recordCount; ++j)    // shift left
+        records[j - 1] = records[j];
+    recordCount--;
+
+    printf("Record with ID %d deleted.\n", id);
+    return 0;
 }
 
 // ===== Read-only accessors for SHOW ALL ===== 
