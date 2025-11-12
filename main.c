@@ -95,13 +95,16 @@ int main(void) {
             }
             deleteRecord(id);
 
-        } else if (strcmp(match, "EXIT") == 0) {
-            printf("\nExiting program... Goodbye!\n");
-            break;
+    } else if (strcmp(match, "EXIT") == 0) {
+        printf("\nExiting program... Goodbye!\n");
+        break;
 
-        } else {
-            printf("Invalid command. Try again.\n");
-        }
+    } else if (strcmp(match, "SUMMARY") == 0) {
+        showSummary();
+
+    } else {
+        printf("Invalid command. Try again.\n");
     }
-    return 0;
+}
+return 0;
 }

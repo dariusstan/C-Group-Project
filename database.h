@@ -24,6 +24,8 @@ void updateRecord(int id);
 void insertRecord(void);
 int openDatabase(const char *path);
 int deleteRecord(int id);
+int isValidProgramme(const char* programme);
+void showSummary();
 
 // Read-only accessors for iteration (preferred public API)
 size_t db_count(void);

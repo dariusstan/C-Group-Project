@@ -24,6 +24,20 @@ int isValidName(const char *name) {
     return 1; // valid
 }
 
+// --- Helper: validate programme ---
+int isValidProgramme(const char* programme) {
+    const char* valid_programmes[] = {"CS", "CE", "EE"}; // Example valid programmes
+    int num_valid_programmes = sizeof(valid_programmes) / sizeof(valid_programmes[0]);
+
+    for (int i = 0; i < num_valid_programmes; i++) {
+        if (strcmp(programme, valid_programmes[i]) == 0) {
+            return 1; // It's a valid programme
+        }
+    }
+    printf("Invalid programme. Please use one of the following: CS, CE, EE.\n");
+    return 0; // It's an invalid programme
+}
+
 // --- OPEN FEATURE ---
 int openDatabase(const char *path) {
     FILE *fp = fopen(path, "r");
@@ -152,17 +166,17 @@ void insertRecord(void) {
     newStudent.name[strcspn(newStudent.name, "\n")] = '\0';
     if (!isValidName(newStudent.name)) return;
 
-    // --- Programme and Mark ---
-    printf("Enter programme: ");
-    fgets(newStudent.programme, sizeof(newStudent.programme), stdin);
-    newStudent.programme[strcspn(newStudent.programme, "\n")] = '\0';
+// --- Programme and Mark ---
+printf("Enter programme: ");
+fgets(newStudent.programme, sizeof(newStudent.programme), stdin);
+newStudent.programme[strcspn(newStudent.programme, "\n")] = '\0';
+if (!isValidProgramme(newStudent.programme)) return;  // Add this line
 
-    printf("Enter mark: ");
-    scanf("%f", &newStudent.mark);
+printf("Enter mark: ");
+scanf("%f", &newStudent.mark);
 
-    records[recordCount++] = newStudent;
-    printf("\nRecord inserted successfully!\n");
-}
+records[recordCount++] = newStudent;
+printf("\nRecord inserted successfully!\n");
 
 // --- DELETE FEATURE ---
 int deleteRecord(int id) {
@@ -200,3 +214,35 @@ const Student* db_get(size_t idx) {
     return idx < (size_t)recordCount ? &records[idx] : NULL;
 }
 
+// --- SUMMARY STATISTICS ---
+void showSummary() {
+    if (recordCount == 0) {
+        printf("No records in the database to summarize.\n");
+        return;
+    }
+
+    float total_mark = 0;
+    float highest_mark = records[0].mark;
+    float lowest_mark = records[0].mark;
+    int highest_idx = 0;
+    int lowest_idx = 0;
+
+    for (int i = 0; i < recordCount; i++) {
+        total_mark += records[i].mark;
+        if (records[i].mark > highest_mark) {
+            highest_mark = records[i].mark;
+            highest_idx = i;
+        }
+        if (records[i].mark < lowest_mark) {
+            lowest_mark = records[i].mark;
+            lowest_idx = i;
+        }
+    }
+
+    printf("\n--- Summary Statistics ---\n");
+    printf("Total number of students: %d\n", recordCount);
+    printf("Average mark: %.2f\n", total_mark / recordCount);
+    printf("Highest mark: %.2f (Student: %s)\n", highest_mark, records[highest_idx].name);
+    printf("Lowest mark: %.2f (Student: %s)\n", lowest_mark, records[lowest_idx].name);
+    printf("--------------------------\n\n");
+}
