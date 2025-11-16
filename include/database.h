@@ -24,6 +24,7 @@ void updateRecord(int id);
 void insertRecord(void);
 int openDatabase(const char *path);
 int deleteRecord(int id);
+int saveDatabase(const char *path);
 int isValidProgramme(const char* programme);
 void showSummary();
 

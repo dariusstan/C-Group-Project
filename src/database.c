@@ -134,6 +134,7 @@ void insertRecord(void) {
         printf("Invalid ID. ID cannot be empty.\n");
         return;
     }
+    
 
     // --- Numeric check ---
     for (int i = 0; idInput[i] != '\0'; i++) {
@@ -166,18 +167,18 @@ void insertRecord(void) {
     newStudent.name[strcspn(newStudent.name, "\n")] = '\0';
     if (!isValidName(newStudent.name)) return;
 
-// --- Programme and Mark ---
-printf("Enter programme: ");
-fgets(newStudent.programme, sizeof(newStudent.programme), stdin);
-newStudent.programme[strcspn(newStudent.programme, "\n")] = '\0';
-if (!isValidProgramme(newStudent.programme)) return;  // Add this line
+    // --- Programme and Mark ---
+    printf("Enter programme: ");
+    fgets(newStudent.programme, sizeof(newStudent.programme), stdin);
+    newStudent.programme[strcspn(newStudent.programme, "\n")] = '\0';
+    if (!isValidProgramme(newStudent.programme)) return;  // Add this line
 
-printf("Enter mark: ");
-scanf("%f", &newStudent.mark);
+    printf("Enter mark: ");
+    scanf("%f", &newStudent.mark);
 
-records[recordCount++] = newStudent;
-printf("\nRecord inserted successfully!\n");
-
+    records[recordCount++] = newStudent;
+    printf("\nRecord inserted successfully!\n");
+}
 // --- DELETE FEATURE ---
 int deleteRecord(int id) {
     int i = 0;
@@ -202,6 +203,25 @@ int deleteRecord(int id) {
     recordCount--;
 
     printf("Record with ID %d deleted.\n", id);
+    return 0;
+}
+
+//--- SAVE FEATURE ---
+int saveDatabase(const char *path) {
+    FILE *fp = fopen(path, "w");
+    if (!fp) {
+        perror("SAVE");
+        return -1;
+    }
+    fprintf(fp, "ID\tName\tProgramme\tMark\n");
+    for (int i = 0; i < recordCount; ++i) {
+        fprintf(fp, "%d\t%s\t%s\t%.1f\n",
+                records[i].id,
+                records[i].name,
+                records[i].programme,
+                records[i].mark);
+    }
+    fclose(fp);
     return 0;
 }
 
