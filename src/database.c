@@ -20,7 +20,6 @@ int isValidName(const char *name) {
             return 0;
         }
     }
-
     return 1; // valid
 }
 
@@ -40,6 +39,7 @@ int isValidProgramme(const char* programme) {
 
 // --- OPEN FEATURE ---
 int openDatabase(const char *path) {
+    //opens the database file for reading
     FILE *fp = fopen(path, "r");
     if (!fp) { 
         perror("OPEN"); 
@@ -50,23 +50,24 @@ int openDatabase(const char *path) {
     // Find header line starting with "ID"
     while (fgets(line, sizeof line, fp)) {
         const char *p = line;
+        //skips white spaces or tabs in the line
         while (*p == ' ' || *p == '\t') ++p;
         if (strncmp(p, "ID", 2) == 0) break;
     }
 
-    recordCount = 0;
+    recordCount = 0;  //sets student record count to 0
+    //reads each line and parses student data
     while (recordCount < MAX_RECORDS && fgets(line, sizeof line, fp)) {
         const char *p = line;
         while (*p == ' ' || *p == '\t') ++p;
         if (!isdigit((unsigned char)*p)) continue;
-
         Student s;
+        //parses line into student struct
         if (sscanf(line, "%d\t%49[^\t]\t%49[^\t]\t%f",
                    &s.id, s.name, s.programme, &s.mark) == 4) {
             records[recordCount++] = s;
         }
     }
-
     fclose(fp);
     return 0;
 }
@@ -179,29 +180,30 @@ void insertRecord(void) {
     records[recordCount++] = newStudent;
     printf("\nRecord inserted successfully!\n");
 }
+
 // --- DELETE FEATURE ---
 int deleteRecord(int id) {
     int i = 0;
+    //searches for record with matching ID
     for (; i < recordCount && records[i].id != id; ++i) {}
     if (i == recordCount) {
         printf("No record found with ID %d.\n", id);
         return -1;
     }
-
     printf("Found: ID=%d, Name=%s, Programme=%s, Mark=%.2f\n",
            records[i].id, records[i].name, records[i].programme, records[i].mark);
 
     printf("Confirm delete? (Y/N): ");
-    char a[8];
+    char a[8];  //buffer size for confirmation input
+    //cancels delete operation if input not Y or y
     if (!fgets(a, sizeof a, stdin) || (a[0] != 'Y' && a[0] != 'y')) {
         puts("Deletion cancelled.");
         return 1;
     }
-
+    //shifts all records after the deleted one to the left
     for (int j = i + 1; j < recordCount; ++j)
         records[j - 1] = records[j];
     recordCount--;
-
     printf("Record with ID %d deleted.\n", id);
     return 0;
 }
@@ -213,6 +215,7 @@ int saveDatabase(const char *path) {
         perror("SAVE");
         return -1;
     }
+    //writes header line
     fprintf(fp, "ID\tName\tProgramme\tMark\n");
     for (int i = 0; i < recordCount; ++i) {
         fprintf(fp, "%d\t%s\t%s\t%.1f\n",
