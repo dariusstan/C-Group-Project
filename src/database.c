@@ -8,7 +8,7 @@ Student records[MAX_RECORDS];
 int recordCount = 0;
 
 /* ============================================================
-   Helper: validate name (alphabetical and not empty)
+   Helper: validate name
    ============================================================ */
 int isValidName(const char *name) {
     if (name == NULL || name[0] == '\0') {
@@ -41,27 +41,24 @@ int isValidProgramme(const char *programme) {
 }
 
 /* ============================================================
-   Helper: validate numeric string for mark input
-   - allows digits
-   - allows ONE decimal point
-   - rejects letters, minus signs, symbols
+   Helper: validate numeric string for mark
    ============================================================ */
 int isNumericString(const char *s) {
-    int i = 0;
     int decimalCount = 0;
+    int i = 0;
 
-    if (s == NULL || s[0] == '\0') return 0;
+    if (s == NULL || s[0] == '\0')
+        return 0;
 
     while (s[i] != '\0') {
         if (isdigit((unsigned char)s[i])) {
-            // ok
-        }
-        else if (s[i] == '.') {
+            /* ok */
+        } else if (s[i] == '.') {
             decimalCount++;
-            if (decimalCount > 1) return 0;   // only 1 decimal allowed
-        }
-        else {
-            return 0; // reject everything else
+            if (decimalCount > 1)
+                return 0; /* too many decimals */
+        } else {
+            return 0; /* reject symbols/letters */
         }
         i++;
     }
@@ -85,32 +82,36 @@ int isValidMark(float mark) {
    ============================================================ */
 int openDatabase(const char *path) {
     FILE *fp = fopen(path, "r");
-    if (!fp) { 
-        perror("OPEN"); 
-        return -1; 
+    if (!fp) {
+        perror("OPEN");
+        return -1;
     }
 
     char line[512];
-    // Find header line starting with "ID"
+
+    /* skip to header */
     while (fgets(line, sizeof line, fp)) {
         const char *p = line;
-        while (*p == ' ' || *p == '\t') ++p;
-        if (strncmp(p, "ID", 2) == 0) break;
+        while (*p == ' ' || *p == '\t') p++;
+        if (strncmp(p, "ID", 2) == 0)
+            break;
     }
 
     recordCount = 0;
+
     while (recordCount < MAX_RECORDS && fgets(line, sizeof line, fp)) {
         const char *p = line;
-        while (*p == ' ' || *p == '\t') ++p;
-        if (!isdigit((unsigned char)*p)) continue;
+        while (*p == ' ' || *p == '\t') p++;
+        if (!isdigit((unsigned char)*p))
+            continue;
 
         Student s;
-        // parses line as a record
         if (sscanf(line, "%d\t%49[^\t]\t%49[^\t]\t%f",
                    &s.id, s.name, s.programme, &s.mark) == 4) {
             records[recordCount++] = s;
         }
     }
+
     fclose(fp);
     return 0;
 }
@@ -139,48 +140,46 @@ int queryRecord(int id) {
    ============================================================ */
 void updateRecord(int id) {
     int index = queryRecord(id);
-    if (index == -1) return;
+    if (index == -1)
+        return;
 
     char buf[128];
 
-    // Name
+    /* name */
     printf("\nEnter new name: ");
     if (!fgets(buf, sizeof buf, stdin)) return;
     buf[strcspn(buf, "\n")] = '\0';
 
     if (!isValidName(buf)) {
-        printf("Name not updated.\n");
         return;
     }
     strcpy(records[index].name, buf);
 
-    // Programme
+    /* programme */
     printf("Enter new programme (CS/CE/EE): ");
     if (!fgets(buf, sizeof buf, stdin)) return;
     buf[strcspn(buf, "\n")] = '\0';
 
     if (!isValidProgramme(buf)) {
-        printf("Programme not updated.\n");
         return;
     }
     strcpy(records[index].programme, buf);
 
-    // Mark
+    /* mark */
     printf("Enter new mark (1-100): ");
     if (!fgets(buf, sizeof buf, stdin)) return;
     buf[strcspn(buf, "\n")] = '\0';
 
     if (!isNumericString(buf)) {
-        printf("Invalid input. Mark must be numeric.\n");
+        printf("Invalid mark. Must be numeric.\n");
         return;
     }
 
     float newMark = atof(buf);
 
-    if (!isValidMark(newMark)) {
-        printf("Mark not updated.\n");
+    /* only one error message */
+    if (!isValidMark(newMark))
         return;
-    }
 
     records[index].mark = newMark;
     printf("\nRecord updated successfully!\n");
@@ -198,7 +197,7 @@ void insertRecord(void) {
     Student s;
     char buf[128];
 
-    /* ---------- ID ---------- */
+    /* ID */
     printf("\nEnter new student ID (7 digits): ");
     if (!fgets(buf, sizeof buf, stdin)) return;
     buf[strcspn(buf, "\n")] = '\0';
@@ -217,19 +216,21 @@ void insertRecord(void) {
         }
     }
 
-    /* ---------- Name ---------- */
+    /* name */
     printf("Enter name: ");
     if (!fgets(s.name, sizeof s.name, stdin)) return;
     s.name[strcspn(s.name, "\n")] = '\0';
+
     if (!isValidName(s.name)) return;
 
-    /* ---------- Programme ---------- */
+    /* programme */
     printf("Enter programme (CS/CE/EE): ");
     if (!fgets(s.programme, sizeof s.programme, stdin)) return;
     s.programme[strcspn(s.programme, "\n")] = '\0';
+
     if (!isValidProgramme(s.programme)) return;
 
-    /* ---------- Mark ---------- */
+    /* mark */
     printf("Enter mark (1-100): ");
     if (!fgets(buf, sizeof buf, stdin)) return;
     buf[strcspn(buf, "\n")] = '\0';
@@ -241,10 +242,9 @@ void insertRecord(void) {
 
     float mark = atof(buf);
 
-    if (!isValidMark(mark)) {
-        printf("Invalid mark (must be 1–100).\n");
+    /* only one error message */
+    if (!isValidMark(mark))
         return;
-    }
 
     s.mark = mark;
 
@@ -253,14 +253,19 @@ void insertRecord(void) {
     records[recordCount++] = s;
     printf("\nRecord inserted successfully!\n");
 }
-// --- DELETE FEATURE ---
+
+/* ============================================================
+   DELETE
+   ============================================================ */
 int deleteRecord(int id) {
     int i = 0;
-    for (; i < recordCount && records[i].id != id; ++i) {}
+    for (; i < recordCount && records[i].id != id; i++) {}
+
     if (i == recordCount) {
         printf("No record found with ID %d.\n", id);
         return -1;
     }
+
     printf("Found: ID=%d, Name=%s, Programme=%s, Mark=%.2f\n",
            records[i].id,
            records[i].name,
@@ -268,14 +273,13 @@ int deleteRecord(int id) {
            records[i].mark);
 
     printf("Confirm delete? (Y/N): ");
-    char a[8];  //buffer size for confirmation input
-    //cancels delete operation if input not Y or y
+    char a[8];
     if (!fgets(a, sizeof a, stdin) || (a[0] != 'Y' && a[0] != 'y')) {
-        puts("Deletion cancelled.");
+        printf("Deletion cancelled.\n");
         return 1;
     }
 
-    for (int j = i + 1; j < recordCount; ++j)
+    for (int j = i + 1; j < recordCount; j++)
         records[j - 1] = records[j];
 
     recordCount--;
@@ -292,6 +296,7 @@ int saveDatabase(const char *path) {
         perror("SAVE");
         return -1;
     }
+
     fprintf(fp, "ID\tName\tProgramme\tMark\n");
 
     for (int i = 0; i < recordCount; i++) {
@@ -307,14 +312,14 @@ int saveDatabase(const char *path) {
 }
 
 /* ============================================================
-   READ-ONLY ACCESSORS
+   ACCESSORS
    ============================================================ */
 size_t db_count(void) {
     return recordCount;
 }
 
 const Student* db_get(size_t idx) {
-    return idx < recordCount ? &records[idx] : NULL;
+    return (idx < recordCount) ? &records[idx] : NULL;
 }
 
 /* ============================================================
@@ -329,27 +334,27 @@ void showSummary() {
     float total = 0;
     float highest = records[0].mark;
     float lowest = records[0].mark;
-
-    int idxH = 0;
-    int idxL = 0;
+    int idxHigh = 0;
+    int idxLow = 0;
 
     for (int i = 0; i < recordCount; i++) {
         total += records[i].mark;
 
         if (records[i].mark > highest) {
             highest = records[i].mark;
-            idxH = i;
+            idxHigh = i;
         }
         if (records[i].mark < lowest) {
             lowest = records[i].mark;
-            idxL = i;
+            idxLow = i;
         }
     }
 
     printf("\n----- Summary Statistics -----\n");
     printf("Total students: %d\n", recordCount);
     printf("Average mark: %.2f\n", total / recordCount);
-    printf("Highest mark: %.2f (Student: %s)\n", highest, records[idxH].name);
-    printf("Lowest mark: %.2f (Student: %s)\n", lowest, records[idxL].name);
+    printf("Highest mark: %.2f (Student: %s)\n", highest, records[idxHigh].name);
+    printf("Lowest mark: %.2f (Student: %s)\n", lowest, records[idxLow].name);
     printf("------------------------------\n\n");
 }
+
