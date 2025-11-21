@@ -12,7 +12,31 @@ typedef struct {
     char name[MAX_STR_LEN];
     char programme[MAX_STR_LEN];
     float mark;
+    char grade;
 } Student;
+
+typedef enum {
+    CMD_HELP,
+    CMD_OPEN,
+    CMD_SHOW_ALL,
+    CMD_QUERY,
+    CMD_UPDATE,
+    CMD_INSERT,
+    CMD_DELETE,
+    CMD_SAVE,
+    CMD_EXIT,
+    CMD_SUMMARY,
+    CMD_EXPORT,
+    CMD_UNKNOWN
+} CommandType;
+
+typedef enum {
+    SORT_ID,
+    SORT_MARK,
+    SORT_GRADE,
+    SORT_NAME,
+    SORT_PROGRAMME,
+} SortField;
 
 // Internal storage owned by database.c
 extern Student records[MAX_RECORDS];
@@ -27,10 +51,13 @@ int openDatabase(const char *path);
 int deleteRecord(int id);
 int saveDatabase(const char *path);
 int isValidProgramme(const char* programme);
+void showAll();
 void showSummary();
+int exportToCSV(const char *path);
+void sortStudents(SortField field, int ascending);
 
 // Read-only accessors for iteration (preferred public API)
 size_t db_count(void);
-const Student* db_get(size_t idx);
+Student* db_get(size_t idx);
 
 #endif
