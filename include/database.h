@@ -6,6 +6,7 @@
 #define MAX_RECORDS 100
 #define MAX_STR_LEN 50
 
+// Student record structure
 typedef struct {
     int id;
     char name[MAX_STR_LEN];
@@ -18,7 +19,7 @@ extern Student records[MAX_RECORDS];
 extern int recordCount;
 
 // Existing operations
-void loadSampleData(void);
+void loadSampleData(void); 
 int queryRecord(int id);
 void updateRecord(int id);
 void insertRecord(void);

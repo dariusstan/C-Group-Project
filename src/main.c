@@ -17,6 +17,7 @@ static void upper_inplace(char *s){
     for (; *s; ++s) *s = (char)toupper((unsigned char)*s);
 }
 
+//start of main program
 int main(void) {
     int id;
     char command[64], match[64], current_path[PATH_LENGTH] = "";
@@ -101,10 +102,11 @@ int main(void) {
             updateRecord(id);
 
         /* ==================================================
-           INSERT — FIXED & CLEAN
+           INSERT
         ================================================== */
         } else if (strcmp(match, "INSERT") == 0) {
             insertRecord();
+
         /* ==================================================
            SAVE
         ================================================== */
@@ -126,19 +128,18 @@ int main(void) {
                     printf("SAVE cancelled.\n");
                     continue;
                 }
-
                 if (saveDatabase(path) == 0) {
                     strcpy(current_path, path);
                     printf("The database file \"%s\" is successfully saved.\n", current_path);
                 } else {
-                    printf("Failed to save database.\n");
+                    printf("Failed to save database file.\n");
                 }
 
             } else {
                 if (saveDatabase(current_path) == 0) {
                     printf("The database file \"%s\" is successfully saved.\n", current_path);
                 } else {
-                    printf("Failed to save database.\n");
+                    printf("Failed to save database file.\n");
                 }
             }
 
@@ -182,4 +183,5 @@ int main(void) {
 
     return 0;
 }
+
 
