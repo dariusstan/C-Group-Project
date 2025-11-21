@@ -39,30 +39,48 @@ int isValidProgramme(const char* programme) {
 
 // --- OPEN FEATURE ---
 int openDatabase(const char *path) {
-    //opens the database file for reading
-    FILE *fp = fopen(path, "r");
-    if (!fp) { 
-        perror("OPEN"); 
-        return -1; 
+    char clean[512], line[512];
+    FILE *fp;  // file pointer for loaded file
+    size_t len;  //length of path
+
+    //writes formatted path without surrounding quotation marks into clean array
+    snprintf(clean, sizeof clean, "%s", path);
+    len = strlen(clean);
+    //checks if first and last character has quotation marks
+    if (len > 1) {
+        char q = clean[0];
+        if ((q == '"' || q == '\'') && clean[len - 1] == q) {
+            // replaces last quote with terminator
+            clean[len - 1] = '\0';
+            // shifts path to left by 1 to remove first quote 
+            memmove(clean, clean + 1, len);
+        }
     }
 
-    char line[512];
-    // Find header line starting with "ID"
+    //if file cannot be opened, exits with error 
+    fp = fopen(clean, "r");
+    if (!fp) {
+        return -1;
+    }
+
+    // find header line starting with "ID"
     while (fgets(line, sizeof line, fp)) {
-        const char *p = line;
-        //skips white spaces or tabs in the line
-        while (*p == ' ' || *p == '\t') ++p;
+        char *p = line;
+        while (*p == ' ' || *p == '\t') p++;
         if (strncmp(p, "ID", 2) == 0) break;
     }
 
-    recordCount = 0;  //sets student record count to 0
-    //reads each line and parses student data
+    recordCount = 0;
+    //reads through each line and parses any valid student record(s)
     while (recordCount < MAX_RECORDS && fgets(line, sizeof line, fp)) {
-        const char *p = line;
-        while (*p == ' ' || *p == '\t') ++p;
+        char *p = line;
+        // skips whitespaces and/or tabs
+        while (*p == ' ' || *p == '\t') p++;
+        // if line does not start with a digit, skip it
         if (!isdigit((unsigned char)*p)) continue;
+
         Student s;
-        //parses line into student struct
+        // parses line as a record
         if (sscanf(line, "%d\t%49[^\t]\t%49[^\t]\t%f",
                    &s.id, s.name, s.programme, &s.mark) == 4) {
             records[recordCount++] = s;
