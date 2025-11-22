@@ -138,7 +138,7 @@ int main(void) {
                 printf("Enter student ID: ");
                 if (!read_line(command, sizeof command)) continue;
                 if (sscanf(command, "%d", &id) != 1 || id <= 0) {
-                    printf("Invalid ID. Please enter a positive number.\n");
+                    printf("Invalid ID. Please enter a positive number, it cannot be empty as well.\n");
                     continue;
                 }
 
@@ -151,7 +151,7 @@ int main(void) {
                 printf("Enter student ID: ");
                 if (!read_line(command, sizeof command)) continue;
                 if (sscanf(command, "%d", &id) != 1 || id <= 0) {
-                    printf("Invalid ID. Please enter a positive number.\n");
+                    printf("Invalid ID. Please enter a positive number, it cannot be empty as well.\n");
                     continue;
                 }
                 updateRecord(id);
