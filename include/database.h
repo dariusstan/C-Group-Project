@@ -43,15 +43,14 @@ extern Student records[MAX_RECORDS];
 extern int recordCount;
 
 // Existing operations
-void loadSampleData(void); 
+int openDatabase(const char *path);
+void showAll();
 int queryRecord(int id);
 void updateRecord(int id);
 void insertRecord(void);
-int openDatabase(const char *path);
 int deleteRecord(int id);
 int saveDatabase(const char *path);
 int isValidProgramme(const char* programme);
-void showAll();
 void showSummary();
 int exportToCSV(const char *path);
 void sortStudents(SortField field, int ascending);
