@@ -1,14 +1,32 @@
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include "database.h"
+#include <stdio.h>  // for FILE, fopen, fclose, fgets, fprintf, perror
+#include <string.h>  // for strlen, strcmp, strcpy, strncpy, strncmp, sscanf, memmove
+#include <ctype.h>  // for isdigit, isalpha, toupper
+#include <stdlib.h>  // for atof
+#include "database.h"  // for function prototypes, Student struct, constants
 
 // =====================================================
 // STORAGE
 // =====================================================
-Student records[MAX_RECORDS];
-int recordCount = 0;
+Student records[MAX_RECORDS];  // default 100 records
+int recordCount = 0;  //record counter 
+
+// =====================================================
+// Helper: Cleans user's input path
+// =====================================================
+void clean_path(const char *input, char *output, size_t out_size) {
+    // if invalid input or output or zero size, exit
+    if (!input || !output || out_size == 0) return;
+
+    // Safely copies input 
+    snprintf(output, out_size, "%s", input);
+    
+    size_t len = strlen(output);
+    // removes surrounding quotation marks " or ' if present
+    if (len > 1 && ((output[0] == '"' || output[0] == '\'') && output[len - 1] == output[0])) {
+        output[len - 1] = '\0';           // replaces last quote with null terminator
+        memmove(output, output + 1, len); // shift left to remove first quote
+    }
+}
 
 // =====================================================
 // Helper: Calculate Grade
@@ -42,13 +60,42 @@ int isValidName(const char *name) {
 // Helper: Validate Programme
 // =====================================================
 int isValidProgramme(const char *programme) {
-    const char *valid[] = {"CS", "CE", "EE"};
-    for (int i = 0; i < 3; i++) {
+    const char *valid[] = {"CS", "CE", "EE", "AI", "DSC"};
+    // Check against valid programmes
+    for (int i = 0; i < 5; i++) {
         if (strcmp(programme, valid[i]) == 0)
             return 1;
     }
-    printf("Invalid programme. Use CS, CE, or EE.\n");
+    printf("Invalid programme. Use CS, CE, EE, AI, or DSC.\n");
     return 0;
+}
+
+// =====================================================
+// Helper: get full programme name from short form
+// =====================================================
+typedef struct {
+    const char *code;  //short programme code like "CS"
+    const char *full;  //full programme name like "Computer Science"
+} Programme_map;
+
+// programme mapping table
+static const Programme_map programmeTable[] = {
+    {"CS", "Computer Science"},
+    {"CE", "Computer Engineering"},
+    {"EE", "Electrical Engineering"},
+    {"AI", "Artificial Intelligence"},
+    {"DSC","Digital Supply Chain" },
+};
+static const int programmeCount = 5;
+
+const char *fullProgramme(const char *code) {
+    // loops through all items in mapping table, compares user input until match found, then returns full name
+    for (int i = 0; i < programmeCount; i++) {
+        if (strcmp(code, programmeTable[i].code) == 0) {
+            return programmeTable[i].full;
+        }
+    }
+    return code; // technically shouldn't reach here since validation done before this
 }
 
 // =====================================================
@@ -85,14 +132,7 @@ int isValidMark(float mark) {
 // =====================================================
 int openDatabase(const char *path) {
     char clean[512], line[512];
-    snprintf(clean, sizeof(clean), "%s", path);
-
-    // Remove surrounding quotes
-    size_t len = strlen(clean);
-    if (len > 1 && ((clean[0] == '"' || clean[0] == '\'') && clean[len - 1] == clean[0])) {
-        clean[len - 1] = '\0';
-        memmove(clean, clean + 1, len);
-    }
+    clean_path(path, clean, sizeof clean);
 
     FILE *fp = fopen(clean, "r");
     if (!fp) return -1;
@@ -111,18 +151,16 @@ int openDatabase(const char *path) {
         if (!isdigit((unsigned char)*p)) continue;
 
         Student s;
-        if (sscanf(line, "%d\t%49[^\t]\t%49[^\t]\t%f",
-                   &s.id, s.name, s.programme, &s.mark) == 4) {
-
+        if (sscanf(line, "%d\t%49[^\t]\t%49[^\t]\t%f", &s.id, s.name, s.programme, &s.mark) == 4) {
+            //calls fullProgramme to convert short code to full name
+            strcpy(s.programme, fullProgramme(s.programme));
             s.grade = getGrade(s.mark);
             records[recordCount++] = s;
         }
     }
-
     fclose(fp);
     return 0;
 }
-
 // =====================================================
 // QUERY
 // =====================================================
@@ -163,8 +201,9 @@ void updateRecord(int id) {
     fgets(buffer, sizeof(buffer), stdin);
     buffer[strcspn(buffer, "\n")] = '\0';
 
-    if (buffer[0] != '\0' && isValidProgramme(buffer))
-        strcpy(records[index].programme, buffer);
+    if (buffer[0] != '\0' && isValidProgramme(buffer)) {
+    strcpy(records[index].programme, fullProgramme(buffer));
+    }
 
     // MARK
     printf("Enter new mark (Enter = keep): ");
@@ -243,6 +282,8 @@ void insertRecord(void) {
 
     float mark = atof(buf);
     if (!isValidMark(mark)) return;
+    //calls fullProgramme to convert short code to full name
+    strcpy(s.programme, fullProgramme(s.programme));
 
     s.mark = mark;
     s.grade = getGrade(mark);
@@ -285,19 +326,36 @@ int deleteRecord(int id) {
 // =====================================================
 // SAVE DATABASE (.txt)
 // =====================================================
-int saveDatabase(const char *path) {
-    FILE *fp = fopen(path, "w");
-    if (!fp) { perror("SAVE"); return -1; }
+    int saveDatabase(const char *path) {
+        char clean[512];  //variable to hold cleaned path
 
-    fprintf(fp, "ID\tName\tProgramme\tMark\n");
-    for (int i = 0; i < recordCount; i++)
-        fprintf(fp, "%d\t%s\t%s\t%.1f\n",
-                records[i].id, records[i].name,
-                records[i].programme, records[i].mark);
+        // if path is NULL or empty, return error and exit function
+        if (!path || path[0] == '\0') {
+            fprintf(stderr, "SAVE: no file path specified\n");
+            return -1;
+        }
 
-    fclose(fp);
-    return 0;
-}
+        //calling clean_path function to sanitize the input path
+        clean_path(path, clean, sizeof clean);
+        FILE *fp = fopen(clean, "w");
+        if (!fp) {
+            perror("SAVE");
+            return -1;
+        }
+
+        //saves the header as well as the student records in tab-separated format into the file
+        fprintf(fp, "ID\tName\tProgramme\tMark\n");
+        for (int i = 0; i < recordCount; i++) {
+            fprintf(fp, "%d\t%s\t%s\t%.1f\n",
+                    records[i].id,
+                    records[i].name,
+                    records[i].programme,
+                    records[i].mark);
+        }
+
+        fclose(fp);
+        return 0;
+    }
 
 // =====================================================
 // EXPORT TO CSV
@@ -307,7 +365,6 @@ int exportToCSV(const char *csvPath) {
     if (!csv) { perror("CSV"); return -1; }
 
     fprintf(csv, "ID,Name,Programme,Mark,Grade\n");
-
     for (int i = 0; i < recordCount; i++) {
         fprintf(csv, "%d,\"%s\",\"%s\",%.1f,%c\n",
                 records[i].id, records[i].name,
@@ -322,7 +379,9 @@ int exportToCSV(const char *csvPath) {
 // =====================================================
 // ACCESSORS
 // =====================================================
-size_t db_count(void) { return recordCount; }
+size_t db_count(void) {
+     return recordCount; 
+    }
 
 Student* db_get(size_t idx) {
     return (idx < recordCount) ? &records[idx] : NULL;
@@ -351,9 +410,8 @@ void showAll() {
 // =====================================================
 void showGradeDistribution() {
     if (recordCount == 0) return;
-
+    // Initialize counters for each grade
     int countA = 0, countB = 0, countC = 0, countD = 0, countF = 0;
-
     for (int i = 0; i < recordCount; i++) {
         switch (records[i].grade) {
             case 'A': countA++; break;
@@ -386,9 +444,9 @@ void showSummary() {
     float low = records[0].mark;
     int idxH = 0, idxL = 0;
 
+    // Calculate total, highest, and lowest marks
     for (int i = 0; i < recordCount; i++) {
         total += records[i].mark;
-
         if (records[i].mark > high) {
             high = records[i].mark;
             idxH = i;
@@ -415,14 +473,11 @@ void showSummary() {
 // SORTING
 // =====================================================
 void sortStudents(SortField field, int ascending) {
-
     for (int i = 0; i < recordCount - 1; i++) {
         for (int j = 0; j < recordCount - i - 1; j++) {
-
             Student *s1 = &records[j];
             Student *s2 = &records[j + 1];
             int swap = 0;
-
             switch (field) {
                 case SORT_ID:
                     swap = ascending ? (s1->id > s2->id) : (s1->id < s2->id);

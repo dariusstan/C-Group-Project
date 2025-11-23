@@ -1,4 +1,4 @@
-#ifndef DATABASE_H
+#ifndef DATABASE_H  
 #define DATABASE_H  // header used to declare shared types and functions
 
 #include <stddef.h>
@@ -15,6 +15,7 @@ typedef struct {
     char grade;
 } Student;
 
+// Command types enumeration
 typedef enum {
     CMD_HELP,
     CMD_OPEN,
@@ -30,6 +31,7 @@ typedef enum {
     CMD_UNKNOWN
 } CommandType;
 
+// Sort field enumeration
 typedef enum {
     SORT_ID,
     SORT_MARK,
@@ -43,17 +45,20 @@ extern Student records[MAX_RECORDS];
 extern int recordCount;
 
 // Existing operations
-int openDatabase(const char *path);
-void showAll();
-int queryRecord(int id);
-void updateRecord(int id);
-void insertRecord(void);
-int deleteRecord(int id);
-int saveDatabase(const char *path);
-int isValidProgramme(const char* programme);
-void showSummary();
-int exportToCSV(const char *path);
-void sortStudents(SortField field, int ascending);
+int openDatabase(const char *path);  // open database function
+void showAll();  // show all records function
+int queryRecord(int id);  // query record function
+void updateRecord(int id);  // update record function
+void insertRecord(void);   // insert record function
+int deleteRecord(int id);  // delete record function
+int saveDatabase(const char *path);  // save database function
+int isValidProgramme(const char* programme);  // validate programme
+const char *fullProgramme(const char *code);  // convert to full programme name
+void showSummary();  // show summary statistics
+int exportToCSV(const char *path);  // export to CSV
+void sortStudents(SortField field, int ascending);  // sorting function
+void clean_path(const char *input, char *output, size_t out_size);  // clean path utility
+
 
 // Read-only accessors for iteration (preferred public API)
 size_t db_count(void);
