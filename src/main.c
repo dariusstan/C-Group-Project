@@ -2,6 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "database.h"
+
 #define PATH_LENGTH 512
 
 // Helper: read a whole line safely
@@ -33,10 +34,11 @@ CommandType parseCommand(const char *cmd) {
     return CMD_UNKNOWN;
 }
 
-//start of main program
+// start of main program
 int main(void) {
     int id;
     char command[64], match[64], current_path[PATH_LENGTH] = "";
+    char path[PATH_LENGTH];   // <------ DECLARE 'path' ONLY ONCE HERE
 
     while (1) {
         printf("\nEnter command (Enter 'HELP' to see all commands): ");
@@ -50,9 +52,6 @@ int main(void) {
         CommandType cmd = parseCommand(match);
 
         switch(cmd) {
-        /* ==================================================
-           Help feature
-        ================================================== */
             case CMD_HELP:
                 printf("Available commands:\n");
                 printf("  OPEN       - Open a database file\n");
@@ -70,70 +69,52 @@ int main(void) {
                 printf("  EXIT       - Exit the program\n");
                 break;
 
-        /* ==================================================
-           OPEN
-        ================================================== */
             case CMD_OPEN:
-                char path[PATH_LENGTH];
                 printf("Enter database file path: ");
-                //calls helper to read line, if fails, cancels OPEN operation
                 if (!read_line(path, sizeof path)) { puts("Open cancelled."); continue; }
                 if (openDatabase(path) != 0) {
                     perror("OPEN failed");
                 } else {
-                    printf("Database opened with %d records.\n", db_count());
+                    printf("Database opened with %zu records.\n", db_count());
                 }
                 break;
-        /* ==================================================
-           SHOW ALL
-        ================================================== */
+
             case CMD_SHOW_ALL: {
                 size_t n = db_count();
                 if (n == 0) {
                     puts("No records to display. Open or insert records first.");
                     continue;
                 }
-
                 if (strstr(match, "SORT BY") != NULL) {
-                        // Extract what comes after "SHOW ALL SORT BY "
-                        char *sortParams = match + strlen("SHOW ALL SORT BY ");
-
-                        char field[20] = "";
-                        char order[10] = "";
-                        // field = "ID" or "MARK" or "GRADE"
-                        // order = "ASC" or "DESC"
-                        int ascending = 1; // default ascending
-
-                        if (sscanf(sortParams, "%s %s", field, order) == 2) {
-                            if(strcmp(order, "ASC") != 0 && strcmp(order, "DESC") != 0) {
-                                printf("Invalid sort order: %s. Use ASC or DESC.\n", order);
-                                continue;
-                            }
-                            ascending = (strcmp(order, "ASC") == 0) ? 1 : 0;
+                    char *sortParams = match + strlen("SHOW ALL SORT BY ");
+                    char field[20] = "";
+                    char order[10] = "";
+                    int ascending = 1; // default ascending
+                    if (sscanf(sortParams, "%s %s", field, order) == 2) {
+                        if(strcmp(order, "ASC") != 0 && strcmp(order, "DESC") != 0) {
+                            printf("Invalid sort order: %s. Use ASC or DESC.\n", order);
+                            continue;
                         }
-                        
-                        if (strcmp(field, "ID") == 0) {
-                            sortStudents(SORT_ID, ascending);
-                        } else if (strcmp(field, "MARK") == 0) {
-                            sortStudents(SORT_MARK, ascending);
-                        } else if (strcmp(field, "GRADE") == 0) {
-                            sortStudents(SORT_GRADE, ascending);
-                        } else if (strcmp(field, "NAME") == 0) {
-                            sortStudents(SORT_NAME, ascending);
-                        } else if (strcmp(field, "PROGRAMME") == 0) {
-                            sortStudents(SORT_PROGRAMME, ascending);
-                        } else {
-                            printf("Unknown field: %s\n", field);
-                            break;
-                        }
+                        ascending = (strcmp(order, "ASC") == 0) ? 1 : 0;
                     }
-
-                    showAll();
-                    break;
-
-        /* ==================================================
-           QUERY
-        ================================================== */
+                    if (strcmp(field, "ID") == 0) {
+                        sortStudents(SORT_ID, ascending);
+                    } else if (strcmp(field, "MARK") == 0) {
+                        sortStudents(SORT_MARK, ascending);
+                    } else if (strcmp(field, "GRADE") == 0) {
+                        sortStudents(SORT_GRADE, ascending);
+                    } else if (strcmp(field, "NAME") == 0) {
+                        sortStudents(SORT_NAME, ascending);
+                    } else if (strcmp(field, "PROGRAMME") == 0) {
+                        sortStudents(SORT_PROGRAMME, ascending);
+                    } else {
+                        printf("Unknown field: %s\n", field);
+                        break;
+                    }
+                }
+                showAll();
+                break;
+            }
             case CMD_QUERY:
                 printf("Enter student ID: ");
                 if (!read_line(command, sizeof command)) continue;
@@ -141,12 +122,8 @@ int main(void) {
                     printf("Invalid ID. Please enter a positive number, it cannot be empty as well.\n");
                     continue;
                 }
-
                 queryRecord(id);
                 break;
-        /* ==================================================
-           UPDATE
-        ================================================== */
             case CMD_UPDATE:
                 printf("Enter student ID: ");
                 if (!read_line(command, sizeof command)) continue;
@@ -156,39 +133,22 @@ int main(void) {
                 }
                 updateRecord(id);
                 break;
-
-        /* ==================================================
-           INSERT
-        ================================================== */
             case CMD_INSERT:
                 insertRecord();
                 break;
-
-        /* ==================================================
-           DELETE
-        ================================================== */
             case CMD_DELETE:
-                int id;
-                char buf[64];
                 printf("Enter student ID to delete: ");
-                if (!fgets(buf, sizeof buf, stdin) || sscanf(buf, "%d", &id) != 1) {
+                if (!read_line(command, sizeof command) || sscanf(command, "%d", &id) != 1) {
                     puts("Delete cancelled.");
                     continue;
                 }
                 deleteRecord(id);
                 break;
-
-        /* ==================================================
-           SAVE
-        ================================================== */
             case CMD_SAVE:
-                char path[PATH_LENGTH];
-
                 if (db_count() == 0) {
                     printf("There is no record to save.\n");
                     continue;
                 }
-
                 if (current_path[0] == '\0') {
                     printf("No file currently opened.\n");
                     printf("Enter a filename to save as: ");
@@ -196,14 +156,12 @@ int main(void) {
                         printf("SAVE cancelled.\n");
                         continue;
                     }
-
                     if (saveDatabase(path) == 0) {
                         strcpy(current_path, path);
                         printf("The database file \"%s\" is successfully saved.\n", current_path);
                     } else {
                         printf("Failed to save database file.\n");
                     }
-
                 } else {
                     if (saveDatabase(current_path) == 0) {
                         printf("The database file \"%s\" is successfully saved.\n", current_path);
@@ -212,25 +170,15 @@ int main(void) {
                     }
                 }
                 break;
-            }
-
-        /* ==================================================
-           SUMMARY
-        ================================================== */
             case CMD_SUMMARY:
                 showSummary();
                 break;
-
-        /* ==================================================
-           EXPORT
-        ================================================== */
             case CMD_EXPORT:
             {
                 if (db_count() == 0) {
                     printf("There is no record to export.\n");
                     continue;
                 }
-
                 if (exportToCSV("data.csv") == 0) {
                     printf("The database file \"%s\" is successfully exported.\n", current_path);
                 } else {
@@ -238,16 +186,8 @@ int main(void) {
                 }
                 break;
             }
-            
-        /* ==================================================
-           EXIT
-        ================================================== */
             case CMD_EXIT:
                 return 0;
-            
-        /* ==================================================
-           INVALID
-        ================================================== */
             default:
                 printf("Invalid command. Try again.\n");
                 break;

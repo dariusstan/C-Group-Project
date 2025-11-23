@@ -10,7 +10,6 @@
 Student records[MAX_RECORDS];
 int recordCount = 0;
 
-
 // =====================================================
 // Helper: Calculate Grade
 // =====================================================
@@ -21,7 +20,6 @@ char getGrade(float mark) {
     if (mark >= 40) return 'D';
     return 'F';
 }
-
 
 // =====================================================
 // Helper: Validate Name
@@ -40,7 +38,6 @@ int isValidName(const char *name) {
     return 1;
 }
 
-
 // =====================================================
 // Helper: Validate Programme
 // =====================================================
@@ -54,18 +51,14 @@ int isValidProgramme(const char *programme) {
     return 0;
 }
 
-
 // =====================================================
 // Helper: Validate Numeric String (Mark)
 // =====================================================
 int isNumericString(const char *s) {
     if (!s || s[0] == '\0') return 0;
-
     int dotCount = 0;
-
     for (int i = 0; s[i]; i++) {
         if (isdigit((unsigned char)s[i])) continue;
-
         if (s[i] == '.') {
             dotCount++;
             if (dotCount > 1) return 0;
@@ -75,7 +68,6 @@ int isNumericString(const char *s) {
     }
     return 1;
 }
-
 
 // =====================================================
 // Helper: Validate Mark Range
@@ -87,7 +79,6 @@ int isValidMark(float mark) {
     }
     return 1;
 }
-
 
 // =====================================================
 // OPEN DATABASE (.txt)
@@ -114,7 +105,6 @@ int openDatabase(const char *path) {
     }
 
     recordCount = 0;
-
     while (recordCount < MAX_RECORDS && fgets(line, sizeof(line), fp)) {
         char *p = line;
         while (*p == ' ' || *p == '\t') p++;
@@ -132,7 +122,6 @@ int openDatabase(const char *path) {
     fclose(fp);
     return 0;
 }
-
 
 // =====================================================
 // QUERY
@@ -153,14 +142,12 @@ int queryRecord(int id) {
     return -1;
 }
 
-
 // =====================================================
 // UPDATE
 // =====================================================
 void updateRecord(int id) {
     int index = queryRecord(id);
     if (index == -1) return;
-
     char buffer[64];
 
     // NAME
@@ -198,7 +185,6 @@ void updateRecord(int id) {
     printf("\nRecord updated successfully!\n");
 }
 
-
 // =====================================================
 // INSERT
 // =====================================================
@@ -228,7 +214,6 @@ void insertRecord(void) {
         printf("Invalid ID length. Must be 7 digits.\n");
         return;
     }
-
     for (int i = 0; i < recordCount; i++) {
         if (records[i].id == s.id) {
             printf("ID already exists.\n");
@@ -266,7 +251,6 @@ void insertRecord(void) {
     printf("\nRecord inserted successfully!\n");
 }
 
-
 // =====================================================
 // DELETE
 // =====================================================
@@ -298,7 +282,6 @@ int deleteRecord(int id) {
     return 0;
 }
 
-
 // =====================================================
 // SAVE DATABASE (.txt)
 // =====================================================
@@ -315,7 +298,6 @@ int saveDatabase(const char *path) {
     fclose(fp);
     return 0;
 }
-
 
 // =====================================================
 // EXPORT TO CSV
@@ -337,7 +319,6 @@ int exportToCSV(const char *csvPath) {
     return 0;
 }
 
-
 // =====================================================
 // ACCESSORS
 // =====================================================
@@ -347,23 +328,23 @@ Student* db_get(size_t idx) {
     return (idx < recordCount) ? &records[idx] : NULL;
 }
 
-
 // =====================================================
-// SHOW ALL
+// SHOW ALL (UPDATED ALIGNMENT!)
 // =====================================================
 void showAll() {
-    printf("-----------------------------------------------------------\n");
-    printf("ID\t\tName\t\tProgramme\tMark\tGrade\n");
-    printf("-----------------------------------------------------------\n");
+    printf("-----------------------------------------------------------------------------\n");
+    printf("%-8s %-20s %-25s %6s %5s\n", "ID", "Name", "Programme", "Mark", "Grade");
+    printf("-----------------------------------------------------------------------------\n");
     for (int i = 0; i < recordCount; i++) {
-        printf("%d\t%-15s %-10s\t%.1f\t%c\n",
-               records[i].id, records[i].name,
-               records[i].programme, records[i].mark,
+        printf("%-8d %-20s %-25s %6.1f %5c\n",
+               records[i].id,
+               records[i].name,
+               records[i].programme,
+               records[i].mark,
                records[i].grade);
     }
-    printf("-----------------------------------------------------------\n");
+    printf("-----------------------------------------------------------------------------\n");
 }
-
 
 // =====================================================
 // GRADE DISTRIBUTION
@@ -390,7 +371,6 @@ void showGradeDistribution() {
     printf("D: %d\n", countD);
     printf("F: %d\n", countF);
 }
-
 
 // =====================================================
 // SUMMARY
@@ -430,7 +410,6 @@ void showSummary() {
 
     showGradeDistribution();
 }
-
 
 // =====================================================
 // SORTING
