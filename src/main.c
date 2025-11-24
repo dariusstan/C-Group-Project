@@ -39,8 +39,9 @@ CommandType parseCommand(const char *cmd) {
 int main(void) {
     int id;
     char command[64], match[64], current_path[PATH_LENGTH] = "";
-    char path[PATH_LENGTH];   // <------ DECLARE 'path' ONLY ONCE HERE
+    char path[PATH_LENGTH];   // DECLARE 'path' ONLY ONCE HERE
 
+    //always loop until user exits
     while (1) {
         printf("\nEnter command (Enter 'HELP' to see all commands): ");
         if (!read_line(command, sizeof command)) break;
@@ -50,6 +51,7 @@ int main(void) {
         match[sizeof match - 1] = 0;
         upper_inplace(match);
 
+        // commandType enum to hold parsed command
         CommandType cmd = parseCommand(match);
 
         switch(cmd) {
@@ -70,6 +72,7 @@ int main(void) {
                 printf("  EXIT       - Exit the program\n");
                 break;
 
+            //OPEN operation
             case CMD_OPEN:
                 printf("Enter database file path: ");
                 if (!read_line(path, sizeof path) || path[0] == '\0') {
