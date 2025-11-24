@@ -66,7 +66,7 @@ int isValidProgramme(const char *programme) {
         if (strcmp(programme, valid[i]) == 0)
             return 1;
     }
-    printf("Invalid programme. Use CS, CE, EE, AI, or DSC.\n");
+    printf("Invalid programme. Use CS, CE, EE, AI, or DSC and the field cannot be empty.\n");
     return 0;
 }
 
@@ -189,7 +189,7 @@ void updateRecord(int id) {
     char buffer[64];
 
     // NAME
-    printf("\nEnter new name (Enter = keep): ");
+    printf("\nEnter new name (Enter to keep. Letters and spaces only allowed): ");
     fgets(buffer, sizeof(buffer), stdin);
     buffer[strcspn(buffer, "\n")] = '\0';
 
@@ -197,7 +197,7 @@ void updateRecord(int id) {
         strcpy(records[index].name, buffer);
 
     // PROGRAMME
-    printf("Enter new programme (Enter = keep): ");
+    printf("Enter new programme (Enter to keep. CS,CE,EE,AI,DSC only allowed): ");
     fgets(buffer, sizeof(buffer), stdin);
     buffer[strcspn(buffer, "\n")] = '\0';
 
@@ -206,7 +206,7 @@ void updateRecord(int id) {
     }
 
     // MARK
-    printf("Enter new mark (Enter = keep): ");
+    printf("Enter new mark (Enter to keep. Within 1-100 only): ");
     fgets(buffer, sizeof(buffer), stdin);
     buffer[strcspn(buffer, "\n")] = '\0';
 
@@ -250,7 +250,7 @@ void insertRecord(void) {
 
     s.id = atoi(buf);
     if (s.id < 1000000 || s.id > 9999999) {
-        printf("Invalid ID length. Must be 7 digits.\n");
+        printf("Invalid ID length. Must be 7 digits and cannot start with 0.\n");
         return;
     }
     for (int i = 0; i < recordCount; i++) {
@@ -267,7 +267,7 @@ void insertRecord(void) {
     if (!isValidName(s.name)) return;
 
     // PROGRAMME
-    printf("Enter programme (CS/CE/EE): ");
+    printf("Enter programme (CS/CE/EE/AI/DSC): ");
     fgets(s.programme, sizeof(s.programme), stdin);
     s.programme[strcspn(s.programme, "\n")] = '\0';
     if (!isValidProgramme(s.programme)) return;
