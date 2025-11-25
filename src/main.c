@@ -5,7 +5,7 @@
 
 #define PATH_LENGTH 512  // defined reusable constant for path length
 
-// Helper: read a whole line safely
+// helper: read a whole line safely
 static int read_line(char *buf, size_t n){
     if (!fgets(buf, (int)n, stdin)) return 0;
     size_t len = strlen(buf);
@@ -14,12 +14,12 @@ static int read_line(char *buf, size_t n){
     return 1;
 }
 
-// Helper: convert user input to uppercase in-place
+// helper: convert user input to uppercase in-place
 static void upper_inplace(char *s){
     for (; *s; ++s) *s = (char)toupper((unsigned char)*s);
 }
 
-// Helper: parse command string to enum
+// helper: parse command string to enum
 CommandType parseCommand(const char *cmd) {
     if (strcmp(cmd, "HELP") == 0) return CMD_HELP;
     if (strcmp(cmd, "OPEN") == 0) return CMD_OPEN;
@@ -46,7 +46,7 @@ int main(void) {
         printf("\nEnter command (Enter 'HELP' to see all commands): ");
         if (!read_line(command, sizeof command)) break;
 
-        // Convert command to uppercase for case-insensitive comparison
+        // convert command to uppercase for case-insensitive comparison
         strncpy(match, command, sizeof match - 1);
         match[sizeof match - 1] = 0;
         upper_inplace(match);
@@ -59,9 +59,9 @@ int main(void) {
                 printf("Available commands:\n");
                 printf("  OPEN       - Open a database file\n");
                 printf("  SHOW ALL   - Display all student records\n");
-                printf("     (Optional Sort Syntax: SHOW ALL SORT BY <FIELD> <ORDER>)\n");
-                printf("        <FIELD>: ID, NAME, PROGRAMME, MARK, GRADE\n");
-                printf("        <ORDER>: ASC (Ascending) or DESC (Descending)\n");
+                printf("               (Optional Sort Syntax: SHOW ALL SORT BY <FIELD> <ORDER>)\n");
+                printf("               <FIELD>: ID, NAME, PROGRAMME, MARK, GRADE\n");
+                printf("               <ORDER>: ASC (Ascending) or DESC (Descending)\n");
                 printf("  QUERY      - Query a student record by ID\n");
                 printf("  UPDATE     - Update a student record by ID\n");
                 printf("  INSERT     - Insert a new student record\n");
@@ -74,16 +74,16 @@ int main(void) {
 
             //OPEN operation
             case CMD_OPEN:
-                printf("Enter database file path: ");
-                if (!read_line(path, sizeof path) || path[0] == '\0') {
+                printf("Enter database file path: "); 
+                if (!read_line(path, sizeof path) || path[0] == '\0') { // read the input path and if the user presses Enter without typing anything or if the read fails, cancel it
                     puts("OPEN cancelled.");
                     break;
                 }
 
-                if (openDatabase(path) != 0) {
+                if (openDatabase(path) != 0) { // if openDatabase() returns a non-zero value, an error occurred.
                     perror("OPEN failed");
                 } else {
-                    // Store the opened path
+                    // store the opened path
                     strncpy(current_path, path, PATH_LENGTH - 1);
                     current_path[PATH_LENGTH - 1] = '\0';
                     printf("Database opened with %zu records.\n", db_count());
@@ -110,6 +110,9 @@ int main(void) {
                         }
                         ascending = (strcmp(order, "ASC") == 0) ? 1 : 0;
                     }
+
+                    // match the field specified by the user and call sortStudents() with the correct sort category and order
+
                     if (strcmp(field, "ID") == 0) {
                         sortStudents(SORT_ID, ascending);
                     } else if (strcmp(field, "MARK") == 0) {
@@ -121,7 +124,7 @@ int main(void) {
                     } else if (strcmp(field, "PROGRAMME") == 0) {
                         sortStudents(SORT_PROGRAMME, ascending);
                     } else {
-                        printf("Unknown field: %s\n", field);
+                        printf("Unknown field: %s\n", field); // if the field doesn't match any known category, show an error
                         break;
                     }
                 }
@@ -134,7 +137,7 @@ int main(void) {
                 printf("Enter student ID: ");
                 if (!read_line(command, sizeof command)) continue;
                 //if invalid input, won't call queryRecord function
-                if (sscanf(command, "%d", &id) != 1 || id <= 0) {
+                if (sscanf(command, "%d", &id) != 1 || id <= 0) { // validate the input by making sure its numeric and positive, empty or non numeric causes it to return 0 and give an error message 
                     printf("Invalid ID. Please enter a positive number, it cannot be empty as well.\n");
                     continue;
                 }
@@ -145,7 +148,7 @@ int main(void) {
             case CMD_UPDATE:
                 printf("Enter student ID: ");
                 if (!read_line(command, sizeof command)) continue;
-                if (sscanf(command, "%d", &id) != 1 || id <= 0) {
+                if (sscanf(command, "%d", &id) != 1 || id <= 0) { // validate the input by making sure its numeric and positive, empty or non numeric causes it to return 0 and give an error message
                     printf("Invalid ID. Please enter a positive number, it cannot be empty as well.\n");
                     continue;
                 }
@@ -171,28 +174,28 @@ int main(void) {
             //SAVE operation
             case CMD_SAVE:
                 if (db_count() == 0) {
-                    printf("There is no record to save.\n");
+                    printf("There is no record to save.\n"); //if theres nothing in the database
                     break;
                 }
 
-                if (current_path[0] == '\0') {
+                if (current_path[0] == '\0') { //if no file was opened, ask user for input
                     printf("No file currently opened.\n");
                     printf("Enter a filename to save as: ");
-                    if (!read_line(path, sizeof path) || path[0] == '\0') {
+                    if (!read_line(path, sizeof path) || path[0] == '\0') { //empty input cancels the save
                         printf("SAVE cancelled.\n");
                         break;
                     }
-                    strcpy(current_path, path);
+                    strcpy(current_path, path); //store the new file path so it can be reused
                 }
 
-                if (saveDatabase(current_path) == 0) {
+                if (saveDatabase(current_path) == 0) { //attempt to save the database to the file
                     printf("The database file \"%s\" is successfully saved.\n", current_path);
                 } else {
                     printf("Failed to save database file.\n");
                 }
                 break;
 
-            // sUMMARY operation    
+            // SUMMARY operation    
             case CMD_SUMMARY:
                 showSummary();
                 break;
@@ -200,20 +203,22 @@ int main(void) {
             // EXPORT operation
             case CMD_EXPORT:
             {
-                if (db_count() == 0) {
-                    printf("There is no record to export.\n");
+                if (db_count() == 0) { //if no records exists
+                    printf("There is no record to export.\n");  
                     continue;
                 }
-                if (exportToCSV("data.csv") == 0) {
+                if (exportToCSV("data.csv") == 0) { //export all records to a csv file, returning 0 on success and non zero on failure
                     printf("The database file \"%s\" is successfully exported.\n", current_path);
                 } else {
                     printf("Failed to export database.\n");
                 }
                 break;
             }
-            case CMD_EXIT:
+
+            case CMD_EXIT: //exit operation
                 return 0;
-            default:
+
+            default: //unknown input goes here
                 printf("Invalid command. Try again.\n");
                 break;
         }

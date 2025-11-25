@@ -5,7 +5,7 @@
 
 #include <stddef.h>
 
-// Student record structure
+// student record structure
 typedef struct {
     int id;
     char name[MAX_STR_LEN];
@@ -14,7 +14,7 @@ typedef struct {
     char grade;
 } Student;
 
-// Command types enumeration
+// command types enumeration
 typedef enum {
     CMD_HELP,
     CMD_OPEN,
@@ -30,7 +30,7 @@ typedef enum {
     CMD_UNKNOWN
 } CommandType;
 
-// Sort field enumeration
+// sort field enumeration
 typedef enum {
     SORT_ID,
     SORT_MARK,
@@ -39,11 +39,11 @@ typedef enum {
     SORT_PROGRAMME,
 } SortField;
 
-// Internal storage owned by database.c
+// internal storage owned by database.c
 extern Student records[MAX_RECORDS];
 extern int recordCount;
 
-// Existing operations
+// existing operations
 int openDatabase(const char *path);  // open database function
 int queryRecord(int id);  // query record function
 int deleteRecord(int id);  // delete record function
@@ -58,7 +58,7 @@ void sortStudents(SortField field, int ascending);  // sorting function
 void clean_path(const char *input, char *output, size_t out_size);  // clean path utility
 const char *fullProgramme(const char *code);  // convert to full programme name
 
-// Read-only accessors for iteration (preferred public API)
+// read-only accessors for iteration
 size_t db_count(void);
 Student* db_get(size_t idx);
 
