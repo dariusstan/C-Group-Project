@@ -207,8 +207,8 @@ int main(void) {
                     printf("There is no record to export.\n");  
                     continue;
                 }
-                if (exportToCSV("data.csv") == 0) { //export all records to a csv file, returning 0 on success and non zero on failure
-                    printf("The database file \"%s\" is successfully exported.\n", current_path);
+                if (exportToCSV("data.csv") == 0) {
+                    printf("The database file \"data.csv\" is successfully exported.\n");
                 } else {
                     printf("Failed to export database.\n");
                 }

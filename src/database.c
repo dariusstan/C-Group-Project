@@ -409,25 +409,45 @@ void showAll() {
 // GRADE DISTRIBUTION
 // =====================================================
 void showGradeDistribution() {
-    if (recordCount == 0) return;
-    // Initialize counters for each grade
-    int countA = 0, countB = 0, countC = 0, countD = 0, countF = 0;
-    for (int i = 0; i < recordCount; i++) {
-        switch (records[i].grade) {
-            case 'A': countA++; break;
-            case 'B': countB++; break;
-            case 'C': countC++; break;
-            case 'D': countD++; break;
-            case 'F': countF++; break;
+    size_t n = db_count();
+    if (n == 0) {
+        return;
+    }
+
+    const char *gradeLabels[] = {"A", "B", "C", "D", "F"};
+    const char *gradeRanges[] = {"(80-100)", "(70-79) ", "(60-69) ", "(50-59) ", "(0-49)  "};
+
+    // Initialize counters
+    int gradeCounts[5] = {0};
+    
+    // Count grades
+    for (size_t i = 0; i < n; i++) {
+        const Student *s = db_get(i);
+
+        switch (s->grade) {
+            case 'A': gradeCounts[0]++; break;
+            case 'B': gradeCounts[1]++; break;
+            case 'C': gradeCounts[2]++; break;
+            case 'D': gradeCounts[3]++; break;
+            case 'F': gradeCounts[4]++; break;
         }
     }
 
-    printf("\nGrade Distribution:\n");
-    printf("A: %d\n", countA);
-    printf("B: %d\n", countB);
-    printf("C: %d\n", countC);
-    printf("D: %d\n", countD);
-    printf("F: %d\n", countF);
+    printf("\n------------------------------------------------------");
+    printf("\n|                 Grade Distribution                 |");
+    printf("\n------------------------------------------------------\n");
+    for (int i = 0; i < 5; i++) {
+        float percentage = (gradeCounts[i] * 100.0) / n;
+        printf("Grade %s %s: %2d students (%.1f%%)\t", 
+               gradeLabels[i], gradeRanges[i], gradeCounts[i], percentage);
+        
+        // Simple bar chart
+        int bars = (int)(percentage / 5);  // Each bar = 5%
+        for (int j = 0; j < bars; j++) {
+            printf("\xDB");
+        }
+        printf("\n\n");
+    }
 }
 
 // =====================================================
